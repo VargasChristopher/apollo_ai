@@ -45,7 +45,7 @@ const HelloWorldIntentHandler = {
         //     }
 
         //     if (educationLevel === 'default')
-        //         return '';
+        //         return 'Talk in a professional way';
 
         //     return 'Make your replies at the ' + educationLevel + ' level.';    
         // }
@@ -144,7 +144,7 @@ const CancelAndStopIntentHandler = {
     }
 };
 /* *
- * FallbackIntent triggers when a customer says something that doesn’t map to any intents in your skill
+ * FallbackIntent triggers when a customer says something that doesn't map to any intents in your skill
  * It must also be defined in the language model (if the locale supports it)
  * This handler can be safely added but will be ingnored in locales that do not support it yet 
  * */
@@ -206,7 +206,7 @@ const ErrorHandler = {
         return true;
     },
     handle(handlerInput, error) {
-        const speakOutput = 'Sorry, I had trouble doing what you asked. Please try again.';a
+        const speakOutput = 'Sorry, I had trouble doing what you asked. Please try again.';
         console.log(`~~~~ Error handled: ${JSON.stringify(error)}`);
 
         return handlerInput.responseBuilder
