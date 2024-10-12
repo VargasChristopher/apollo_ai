@@ -5,17 +5,20 @@
  * */
 
 const Alexa = require('ask-sdk-core');
-const request = require('sync-request');
+const axios = require('axios');
 
 //const openai = new OpenAI();
-const { OPENAI_API_KEY } = require('./config');
+//const { OPENAI_API_KEY } = require('./config');
+
+const endpoint = 'https://apollo-ai-main.openai.azure.com/openai/deployments/gpt-4o-mini/chat/completions?api-version=2024-02-15-preview'
+const apiKey = 'c3fb4f705e154742bc2ad3864fe024a0'; // Azure Api key
 
 const LaunchRequestHandler = {
     canHandle(handlerInput) {
         return Alexa.getRequestType(handlerInput.requestEnvelope) === 'LaunchRequest';
     },
     handle(handlerInput) {
-        const speakOutput = 'Welcome to Apollo AI. Say Which language model would you like to use? Microsoft Copilot, ChatGPT, or Meta Llama?';
+        const speakOutput = 'Welcome to Apollo AI. Which language model would you like to use? Microsoft Copilot, ChatGPT, or Meta Llama?';
         
         return handlerInput.responseBuilder.speak(speakOutput).reprompt(speakOutput).getResponse();
     }
@@ -33,52 +36,76 @@ const HelloWorldIntentHandler = {
         const catchAllValue = handlerInput.requestEnvelope.request.intent.slots.catchAll.value;
         console.log('User Input:', catchAllValue);
 
-        function getEducationLevel() {
-            var speakOutput = 'How complex do you want my responses to be? Elementary, high school, college, expert, or default?';
-            var educationLevel = handlerInput.responseBuilder.speak(speakOutput).reprompt(speakOutput).getResponse.toLowerCase();
-            while (!(educationLevel === 'elementary' || educationLevel === 'high school' || educationLevel === 'college' || educationLevel === 'expert' || educationLevel === 'default')) {
-                speakOutput = 'Please respond with either elementary, high school, college, expert, or default.';
-                educationLevel = handlerInput.responseBuilder.speak(speakOutput).reprompt(speakOutput).getResponse.toLowerCase();
-            }
+        // function getEducationLevel() {
+        //     const speakOutput = 'How complex do you want your responses to be? Elementary, high school, college, expert, or default?';
+        //     const educationLevel = handlerInput.responseBuilder.speak(speakOutput).reprompt(speakOutput).getResponse.toLowerCase();
+        //     while (!(educationLevel === 'elementary' || educationLevel === 'high school' || educationLevel === 'college' || educationLevel === 'expert' || educationLevel === 'default')) {
+        //         const speakOutput = 'Please respond with either elementary, high school, college, expert, or default.';
+        //         const educationLevel = handlerInput.responseBuilder.speak(speakOutput).reprompt(speakOutput).getResponse.toLowerCase();
+        //     }
 
-            if (educationLevel === 'default')
-                return '';
+        //     if (educationLevel === 'default')
+        //         return '';
 
-            return 'Make your replies at the ' + educationLevel + ' level.';
-        }
-
-        function makeSyncPostRequest() {
-            try {
-                const response = request('POST', 'https://api.openai.com/v1/chat/completions', {
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': 'Bearer ' + OPENAI_API_KEY,
-                        // Add any other headers if needed
-                    },
-                    body: JSON.stringify( {
-                             "model":"gpt-3.5-turbo",
-                             "messages": [{"role": "system", "content": getEducationLevel()},{"role": "user", "content": catchAllValue}]
-                         })
-                });
+        //     return 'Make your replies at the ' + educationLevel + ' level.';    
+        // }
         
-                // Check the response status code
-                if (response.statusCode === 200) {
-                    // Process the response body
-                    speakOutput = JSON.parse(response.getBody('utf8'));
-                    speakOutput = speakOutput.choices[0].message.content;
-                  // const responseBody = response.choices[0].message.content;
+
+        // function makeSyncPostRequest() {
+        //     try {
+        //         const response = request('POST', 'https://api.openai.com/v1/chat/completions', {
+        //             headers: {
+        //                 'Content-Type': 'application/json',
+        //                 'Authorization': 'Bearer ' + OPENAI_API_KEY,
+        //                 // Add any other headers if needed
+        //             },
+        //             body: JSON.stringify( {
+        //                      "model":"gpt-3.5-turbo",
+        //                      "messages": [{"role": "system", "content": getEducationLevel()},{"role": "user", "content": catchAllValue}]
+        //                  })
+        //         });
+        
+        //         // Check the response status code
+        //         if (response.statusCode === 200) {
+        //             // Process the response body
+        //             speakOutput = JSON.parse(response.getBody('utf8'));
+        //             speakOutput = speakOutput.choices[0].message.content;
+        //           // const responseBody = response.choices[0].message.content;
 
 
-                    console.log('Response:', speakOutput);
-                } else {
-                    console.error('Failed with status code:', response.statusCode);
-                }
-            } catch (error) {
-                console.error('Error:', error.message);
-            }
-        }
+        //             console.log('Response:', speakOutput);
+        //         } else {
+        //             console.error('Failed with status code:', response.statusCode);
+        //         }
+        //     } catch (error) {
+        //         console.error('Error:', error.message);
+        //     }
+        // }
         // Call the function to make the synchronous API POST request
-        makeSyncPostRequest();
+        // makeSyncPostRequest();
+
+        try {
+            const response = await axios.post(endpoint, {
+                "prompt": catchAllValue,  // Pass the user's input as the prompt
+                "max_tokens": 150,         // Adjust max tokens as needed
+                "temperature": 0.7,        // Adjust for creative or factual responses
+                "top_p": 1,
+                "n": 1,
+                "stop": null
+            }, {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'api-key': apiKey // Azure API key
+                }
+            });
+
+            // Extract the response from Azure OpenAI
+            if (response.data && response.data.choices) {
+                speakOutput = response.data.choices[0].text.trim();
+            }
+        } catch (error) {
+            console.error('Error calling Azure OpenAI API:', error);
+        }
 
         return handlerInput.responseBuilder
             .speak(speakOutput)
@@ -165,7 +192,7 @@ const IntentReflectorHandler = {
 
         return handlerInput.responseBuilder
             .speak(speakOutput)
-            //.reprompt('add a reprompt if you want to keep the session open for the user to respond')
+            .reprompt('add a reprompt if you want to keep the session open for the user to respond')
             .getResponse();
     }
 };
