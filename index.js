@@ -36,12 +36,12 @@ const HelloWorldIntentHandler = {
         function getEducationLevel() {
             const speakOutput = 'How complex do you want your responses to be? Elementary, high school, college, expert, or default?';
             const educationLevel = handlerInput.responseBuilder.speak(speakOutput).reprompt(speakOutput).getResponse.toLowerCase();
-            while (!(educationLevel == 'elementary' || educationLevel == 'high school' || educationLevel == 'college' || educationLevel == 'expert' || educationLevel == 'default')) {
+            while (!(educationLevel === 'elementary' || educationLevel === 'high school' || educationLevel === 'college' || educationLevel === 'expert' || educationLevel === 'default')) {
                 const speakOutput = 'Please respond with either elementary, high school, college, expert, or default.';
                 const educationLevel = handlerInput.responseBuilder.speak(speakOutput).reprompt(speakOutput).getResponse.toLowerCase();
             }
 
-            if(educationLevel == 'default')
+            if (educationLevel === 'default')
                 return '';
 
             return 'Make your replies at the ' + educationLevel + ' level.';
