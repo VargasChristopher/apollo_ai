@@ -45,44 +45,44 @@ const HelloWorldIntentHandler = {
         //     }
 
         //     if (educationLevel === 'default')
-        //         return 'Talk in a professional way';
+        //         return 'Talk in a professional way.';
 
         //     return 'Make your replies at the ' + educationLevel + ' level.';    
         // }
         
 
-        // function makeSyncPostRequest() {
-        //     try {
-        //         const response = request('POST', 'https://api.openai.com/v1/chat/completions', {
-        //             headers: {
-        //                 'Content-Type': 'application/json',
-        //                 'Authorization': 'Bearer ' + OPENAI_API_KEY,
-        //                 // Add any other headers if needed
-        //             },
-        //             body: JSON.stringify( {
-        //                      "model":"gpt-3.5-turbo",
-        //                      "messages": [{"role": "system", "content": getEducationLevel()},{"role": "user", "content": catchAllValue}]
-        //                  })
-        //         });
+        function makeSyncPostRequest() {
+            try {
+                const response = request('POST', 'https://api.openai.com/v1/chat/completions', {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + OPENAI_API_KEY,
+                        // Add any other headers if needed
+                    },
+                    body: JSON.stringify( {
+                             "model":"gpt-3.5-turbo",
+                             "messages": [{"role": "system", "content": "Talk in a professional way."/*getEducationLevel()*/},{"role": "user", "content": catchAllValue}]
+                         })
+                });
         
-        //         // Check the response status code
-        //         if (response.statusCode === 200) {
-        //             // Process the response body
-        //             speakOutput = JSON.parse(response.getBody('utf8'));
-        //             speakOutput = speakOutput.choices[0].message.content;
-        //           // const responseBody = response.choices[0].message.content;
+                // Check the response status code
+                if (response.statusCode === 200) {
+                    // Process the response body
+                    speakOutput = JSON.parse(response.getBody('utf8'));
+                    speakOutput = speakOutput.choices[0].message.content;
+                    const responseBody = response.choices[0].message.content;
 
 
-        //             console.log('Response:', speakOutput);
-        //         } else {
-        //             console.error('Failed with status code:', response.statusCode);
-        //         }
-        //     } catch (error) {
-        //         console.error('Error:', error.message);
-        //     }
-        // }
+                    console.log('Response:', speakOutput);
+                } else {
+                    console.error('Failed with status code:', response.statusCode);
+                }
+            } catch (error) {
+                console.error('Error:', error.message);
+            }
+        }
         // Call the function to make the synchronous API POST request
-        // makeSyncPostRequest();
+        makeSyncPostRequest();
 
         try {
             const response = await axios.post(endpoint, {
@@ -192,7 +192,7 @@ const IntentReflectorHandler = {
 
         return handlerInput.responseBuilder
             .speak(speakOutput)
-            .reprompt('add a reprompt if you want to keep the session open for the user to respond')
+            .reprompt('anything else?')
             .getResponse();
     }
 };
