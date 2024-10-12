@@ -82,7 +82,7 @@ const HelloWorldIntentHandler = {
 
         return handlerInput.responseBuilder
             .speak(speakOutput)
-            //.reprompt('anything else?')
+            .reprompt('anything else?')
             .getResponse();
     }
 };
