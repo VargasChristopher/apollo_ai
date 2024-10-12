@@ -3,30 +3,23 @@
  * Please visit https://alexa.design/cookbook for additional examples on implementing slots, dialog management,
  * session persistence, api calls, and more.
  * */
- 
+
 const Alexa = require('ask-sdk-core');
 const request = require('sync-request');
 
 //const openai = new OpenAI();
 const { OPENAI_API_KEY } = require('./config');
 
-
-
 const LaunchRequestHandler = {
     canHandle(handlerInput) {
         return Alexa.getRequestType(handlerInput.requestEnvelope) === 'LaunchRequest';
     },
     handle(handlerInput) {
-        const speakOutput = 'Which Intent do you want - say hello to start';
-
-        return handlerInput.responseBuilder
-            .speak(speakOutput)
-            .reprompt(speakOutput)
-            .getResponse();
+        const speakOutput = 'Which language model would you like to use? Microsoft Copilot, ChatGPT, or Meta Llama?';
+        
+        return handlerInput.responseBuilder.speak(speakOutput).reprompt(speakOutput).getResponse();
     }
 };
-
-
 
 const HelloWorldIntentHandler = {
     canHandle(handlerInput) {
@@ -39,7 +32,21 @@ const HelloWorldIntentHandler = {
         // Retrieve the value of the 'catchAll' slot
         const catchAllValue = handlerInput.requestEnvelope.request.intent.slots.catchAll.value;
         console.log('User Input:', catchAllValue);
-        
+
+        function getEducationLevel() {
+            const speakOutput = 'How complex do you want your responses to be? Elementary, high school, college, expert, or default?';
+            const educationLevel = handlerInput.responseBuilder.speak(speakOutput).reprompt(speakOutput).getResponse.toLowerCase();
+            while (!(educationLevel == 'elementary' || educationLevel == 'high school' || educationLevel == 'college' || educationLevel == 'expert' || educationLevel == 'default')) {
+                const speakOutput = 'Please respond with either elementary, high school, college, expert, or default.';
+                const educationLevel = handlerInput.responseBuilder.speak(speakOutput).reprompt(speakOutput).getResponse.toLowerCase();
+            }
+
+            if(educationLevel == 'default')
+                return '';
+
+            return 'Make your replies at the ' + educationLevel + ' level.';
+        }
+
         function makeSyncPostRequest() {
             try {
                 const response = request('POST', 'https://api.openai.com/v1/chat/completions', {
@@ -48,9 +55,9 @@ const HelloWorldIntentHandler = {
                         'Authorization': 'Bearer ' + OPENAI_API_KEY,
                         // Add any other headers if needed
                     },
-                    body: JSON.stringify({  
+                    body: JSON.stringify( {
                              "model":"gpt-3.5-turbo",
-                             "messages": [{"role": "system", "content": "Be sassy, and a tad mean in your replies"},{"role": "user", "content": catchAllValue}]
+                             "messages": [{"role": "system", "content": getEducationLevel()},{"role": "user", "content": catchAllValue}]
                          })
                 });
         
