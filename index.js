@@ -44,7 +44,7 @@ const HelloWorldIntentHandler = {
             if (educationLevel === 'default')
                 return '';
 
-            return 'Make your replies at the ' + educationLevel + ' level.';
+            return 'Make your replies at the ' + educationLevel + ' level.';    
         }
 
         function makeSyncPostRequest() {
