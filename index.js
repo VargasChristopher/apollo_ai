@@ -3,26 +3,30 @@
  * Please visit https://alexa.design/cookbook for additional examples on implementing slots, dialog management,
  * session persistence, api calls, and more.
  * */
-
+ 
 const Alexa = require('ask-sdk-core');
-const axios = require('axios');
+const request = require('sync-request');
 
 //const openai = new OpenAI();
-//const { OPENAI_API_KEY } = require('./config');
+const { OPENAI_API_KEY } = require('./config');
 
-const endpoint = 'https://apollo-ai-main.openai.azure.com/openai/deployments/gpt-4o-mini/chat/completions?api-version=2024-02-15-preview'
-const apiKey = 'c3fb4f705e154742bc2ad3864fe024a0'; // Azure Api key
+
 
 const LaunchRequestHandler = {
     canHandle(handlerInput) {
         return Alexa.getRequestType(handlerInput.requestEnvelope) === 'LaunchRequest';
     },
     handle(handlerInput) {
-        const speakOutput = 'Welcome to Apollo AI. Which language model would you like to use? Microsoft Copilot, ChatGPT, or Meta Llama?';
-        
-        return handlerInput.responseBuilder.speak(speakOutput).reprompt(speakOutput).getResponse();
+        const speakOutput = 'Which Intent do you want - say hello to start';
+
+        return handlerInput.responseBuilder
+            .speak(speakOutput)
+            .reprompt(speakOutput)
+            .getResponse();
     }
 };
+
+
 
 const HelloWorldIntentHandler = {
     canHandle(handlerInput) {
@@ -35,44 +39,35 @@ const HelloWorldIntentHandler = {
         // Retrieve the value of the 'catchAll' slot
         const catchAllValue = handlerInput.requestEnvelope.request.intent.slots.catchAll.value;
         console.log('User Input:', catchAllValue);
-
-        // function getEducationLevel() {
-        //     const speakOutput = 'How complex do you want your responses to be? Elementary, high school, college, expert, or default?';
-        //     const educationLevel = handlerInput.responseBuilder.speak(speakOutput).reprompt(speakOutput).getResponse.toLowerCase();
-        //     while (!(educationLevel === 'elementary' || educationLevel === 'high school' || educationLevel === 'college' || educationLevel === 'expert' || educationLevel === 'default')) {
-        //         const speakOutput = 'Please respond with either elementary, high school, college, expert, or default.';
-        //         const educationLevel = handlerInput.responseBuilder.speak(speakOutput).reprompt(speakOutput).getResponse.toLowerCase();
-        //     }
-
-        //     if (educationLevel === 'default')
-        //         return 'Talk in a professional way.';
-
-        //     return 'Make your replies at the ' + educationLevel + ' level.';    
-        // }
         
-
         function makeSyncPostRequest() {
             try {
-                const response = await axios.post(endpoint, {
-                    "prompt": catchAllValue,  // Pass the user's input as the prompt
-                    "max_tokens": 150,         // Adjust max tokens as needed
-                    "temperature": 0.7,        // Adjust for creative or factual responses
-                    "top_p": 1,
-                    "n": 1,
-                    "stop": null
-                }, {
+                const response = request('POST', 'https://api.openai.com/v1/chat/completions', {
                     headers: {
                         'Content-Type': 'application/json',
-                        'api-key': apiKey // Azure API key
-                    }
+                        'Authorization': 'Bearer ' + OPENAI_API_KEY,
+                        // Add any other headers if needed
+                    },
+                    body: JSON.stringify({  
+                             "model":"gpt-4o-mini",
+                             "messages": [{"role": "system", "content": "Talk in a professional and informative way, keeping your replies brief."},{"role": "user", "content": catchAllValue}]
+                         })
                 });
-    
-                // Extract the response from Azure OpenAI
-                if (response.data && response.data.choices) {
-                    speakOutput = response.data.choices[0].text.trim();
+        
+                // Check the response status code
+                if (response.statusCode === 200) {
+                    // Process the response body
+                    speakOutput = JSON.parse(response.getBody('utf8'));
+                    speakOutput = speakOutput.choices[0].message.content;
+                  // const responseBody = response.choices[0].message.content;
+
+
+                    console.log('Response:', speakOutput);
+                } else {
+                    console.error('Failed with status code:', response.statusCode);
                 }
             } catch (error) {
-                console.error('Error calling Azure OpenAI API:', error);
+                console.error('Error:', error.message);
             }
         }
         // Call the function to make the synchronous API POST request
@@ -80,7 +75,7 @@ const HelloWorldIntentHandler = {
 
         return handlerInput.responseBuilder
             .speak(speakOutput)
-            .reprompt('anything else?')
+            .reprompt('Is there anything else?')
             .getResponse();
     }
 };
@@ -115,7 +110,7 @@ const CancelAndStopIntentHandler = {
     }
 };
 /* *
- * FallbackIntent triggers when a customer says something that doesn't map to any intents in your skill
+ * FallbackIntent triggers when a customer says something that doesn’t map to any intents in your skill
  * It must also be defined in the language model (if the locale supports it)
  * This handler can be safely added but will be ingnored in locales that do not support it yet 
  * */
@@ -163,7 +158,7 @@ const IntentReflectorHandler = {
 
         return handlerInput.responseBuilder
             .speak(speakOutput)
-            .reprompt('anything else?')
+            .reprompt('Is there anything else?')
             .getResponse();
     }
 };
