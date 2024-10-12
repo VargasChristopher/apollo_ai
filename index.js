@@ -10,7 +10,7 @@ const LaunchRequestHandler = {
         return Alexa.getRequestType(handlerInput.requestEnvelope) === 'LaunchRequest';
     },
     handle(handlerInput) {
-        const speakOutput = 'How complex do you want your responses to be? Elementary, high school, college, expert, or default? Say exit at any time to stop the conversation.';
+        const speakOutput = 'Welcome to Apollo A.I.. How complex do you want your responses to be? Elementary, high school, college, expert, or default? Say exit at any time to stop the conversation.';
         return handlerInput.responseBuilder
             .speak(speakOutput)
             .reprompt(speakOutput)  // Add reprompt for user response
