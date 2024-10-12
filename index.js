@@ -1,7 +1,7 @@
 const Alexa = require('ask-sdk-core');
 const request = require('sync-request');
 const { OPENAI_API_KEY } = require('./config');
-var initialPrompt = 'Talk in a professional and informative way, keeping your replies brief and allowing me .';
+var initialPrompt = 'Talk in a professional and informative way, keeping your replies brief and allowing me to change how complex your answers are.';
 var catchAllList = [];
 
 const LaunchRequestHandler = {
