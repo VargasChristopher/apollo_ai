@@ -10,14 +10,12 @@ const request = require('sync-request');
 //const openai = new OpenAI();
 const { OPENAI_API_KEY } = require('./config');
 
-
-
 const LaunchRequestHandler = {
     canHandle(handlerInput) {
         return Alexa.getRequestType(handlerInput.requestEnvelope) === 'LaunchRequest';
     },
     handle(handlerInput) {
-        const speakOutput = 'Which Intent do you want - say hello to start';
+        const speakOutput = 'Welcome to Apollo AI. Which language model would you like to use? Microsoft Copilot, ChatGPT, or Meta Llama?';
 
         return handlerInput.responseBuilder
             .speak(speakOutput)
@@ -25,8 +23,6 @@ const LaunchRequestHandler = {
             .getResponse();
     }
 };
-
-
 
 const HelloWorldIntentHandler = {
     canHandle(handlerInput) {
@@ -39,6 +35,20 @@ const HelloWorldIntentHandler = {
         // Retrieve the value of the 'catchAll' slot
         const catchAllValue = handlerInput.requestEnvelope.request.intent.slots.catchAll.value;
         console.log('User Input:', catchAllValue);
+
+        function getEducationLevel() {
+            var speakOutput = 'How complex do you want your responses to be? Elementary, high school, college, expert, or default?';
+            var educationLevel = handlerInput.responseBuilder.speak(speakOutput).reprompt(speakOutput).getResponse.toLowerCase();
+            while (!(educationLevel === 'elementary' || educationLevel === 'high school' || educationLevel === 'college' || educationLevel === 'expert' || educationLevel === 'default')) {
+                speakOutput = 'Please respond with either elementary, high school, college, expert, or default.';
+                educationLevel = handlerInput.responseBuilder.speak(speakOutput).reprompt(speakOutput).getResponse.toLowerCase();
+            }
+
+            if (educationLevel === 'default')
+                return 'Talk in a professional and informative way, keeping your replies brief.';
+
+            return 'Make your replies at the ' + educationLevel + ' level, keeping your replies brief.';    
+        }
         
         function makeSyncPostRequest() {
             try {
@@ -50,7 +60,7 @@ const HelloWorldIntentHandler = {
                     },
                     body: JSON.stringify({  
                              "model":"gpt-4o-mini",
-                             "messages": [{"role": "system", "content": "Talk in a professional and informative way, keeping your replies brief."},{"role": "user", "content": catchAllValue}]
+                             "messages": [{"role": "system", "content": getEducationLevel()},{"role": "user", "content": catchAllValue}]
                          })
                 });
         
