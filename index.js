@@ -34,11 +34,11 @@ const HelloWorldIntentHandler = {
         console.log('User Input:', catchAllValue);
 
         function getEducationLevel() {
-            const speakOutput = 'How complex do you want your responses to be? Elementary, high school, college, expert, or default?';
-            const educationLevel = handlerInput.responseBuilder.speak(speakOutput).reprompt(speakOutput).getResponse.toLowerCase();
+            var speakOutput = 'How complex do you want your responses to be? Elementary, high school, college, expert, or default?';
+            var educationLevel = handlerInput.responseBuilder.speak(speakOutput).reprompt(speakOutput).getResponse.toLowerCase();
             while (!(educationLevel === 'elementary' || educationLevel === 'high school' || educationLevel === 'college' || educationLevel === 'expert' || educationLevel === 'default')) {
-                const speakOutput = 'Please respond with either elementary, high school, college, expert, or default.';
-                const educationLevel = handlerInput.responseBuilder.speak(speakOutput).reprompt(speakOutput).getResponse.toLowerCase();
+                speakOutput = 'Please respond with either elementary, high school, college, expert, or default.';
+                educationLevel = handlerInput.responseBuilder.speak(speakOutput).reprompt(speakOutput).getResponse.toLowerCase();
             }
 
             if (educationLevel === 'default')
