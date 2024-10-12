@@ -1,8 +1,7 @@
 const Alexa = require('ask-sdk-core');
 const request = require('sync-request');
 const { OPENAI_API_KEY } = require('./config');
-const levels = ['elementary', 'high school', 'college', 'expert'];
-var initialPrompt = 'Talk in a professional and informative way, keeping your replies brief.';
+var initialPrompt = 'Talk in a professional and informative way, keeping your replies brief and allowing me .';
 var catchAllList = [];
 
 const LaunchRequestHandler = {
@@ -10,7 +9,7 @@ const LaunchRequestHandler = {
         return Alexa.getRequestType(handlerInput.requestEnvelope) === 'LaunchRequest';
     },
     handle(handlerInput) {
-        const speakOutput = 'Welcome to Apollo A.I.. How complex do you want your responses to be? Elementary, high school, college, expert, or default? Say exit at any time to stop the conversation.';
+        const speakOutput = 'Welcome to Apollo A.I.. What language model do you want? Microsoft, OpenAI, or Meta. Say exit at any time to leave.';
         return handlerInput.responseBuilder
             .speak(speakOutput)
             .reprompt(speakOutput)  // Add reprompt for user response
@@ -37,6 +36,8 @@ const HelloWorldIntentHandler = {
                 let messages = [
                     { "role": "system", "content": initialPrompt }
                 ];
+                
+                messages.push({ "role": "user", "content": "Here is a text-based file of Microsoft and Cloudforces slides. Slide 1: Accelerating AI Adoption with Copilot & Azure OpenAI -Cloudforce, a Powerful Extension of Microsoft: -Highlights Cloudforces role as a leading Microsoft partner, focused on delivering AI solutions with tools like Microsoft Copilot and Azure OpenAI. -Recognized for helping Fortune 500 companies and other institutions accelerate cloud adoption using Azure and Microsoft 365. -Key Metrics: -Customer Growth: 52.3% average annual growth rate. -Client Satisfaction: 9.64/10 average survey rating. -Certifications: Over 150 individual Azure and M365 certifications. Slide 2: Enhance the Student Experience at George Mason University -Goal: Leverage Microsofts AI tools and services to create a solution that enhances student experience at GMU. -Focus on sustainability, functionality, and security through this solution. Slide 3: Innovate the Future Track -Objective: Design and develop a creative, AI-powered tool using Azure OpenAI and other Microsoft technologies to enhance the functionality, sustainability, educational, and user experiences of George mason university students. -Prizes: -First Place: Xbox Series S for all team members. -Second/Third Place: Various swag items from Microsoft. This summary represents the key points from the three slides." });
 
                 // Add all previous inputs from catchAllList to the messages array
                 catchAllList.forEach(value => {
