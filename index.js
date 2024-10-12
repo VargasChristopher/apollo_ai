@@ -1,25 +1,19 @@
-/* *
- * This sample demonstrates handling intents from an Alexa skill using the Alexa Skills Kit SDK (v2).
- * Please visit https://alexa.design/cookbook for additional examples on implementing slots, dialog management,
- * session persistence, api calls, and more.
- * */
- 
 const Alexa = require('ask-sdk-core');
 const request = require('sync-request');
-
-//const openai = new OpenAI();
 const { OPENAI_API_KEY } = require('./config');
+const levels = ['elementary', 'high school', 'college', 'expert'];
+var initialPrompt = 'Talk in a professional and informative way, keeping your replies brief.';
+var catchAllList = [];
 
 const LaunchRequestHandler = {
     canHandle(handlerInput) {
         return Alexa.getRequestType(handlerInput.requestEnvelope) === 'LaunchRequest';
     },
     handle(handlerInput) {
-        const speakOutput = 'Welcome to Apollo AI. Which language model would you like to use? Microsoft Copilot, ChatGPT, or Meta Llama?';
-
+        const speakOutput = 'How complex do you want your responses to be? Elementary, high school, college, expert, or default? Say exit at any time to stop the conversation.';
         return handlerInput.responseBuilder
             .speak(speakOutput)
-            .reprompt(speakOutput)
+            .reprompt(speakOutput)  // Add reprompt for user response
             .getResponse();
     }
 };
@@ -31,47 +25,42 @@ const HelloWorldIntentHandler = {
     },
     handle(handlerInput) {
         var speakOutput = 'Hello World!';
-        
+
         // Retrieve the value of the 'catchAll' slot
         const catchAllValue = handlerInput.requestEnvelope.request.intent.slots.catchAll.value;
         console.log('User Input:', catchAllValue);
 
-        function getEducationLevel() {
-            var speakOutput = 'How complex do you want your responses to be? Elementary, high school, college, expert, or default?';
-            var educationLevel = handlerInput.responseBuilder.speak(speakOutput).reprompt(speakOutput).getResponse.toLowerCase();
-            while (!(educationLevel === 'elementary' || educationLevel === 'high school' || educationLevel === 'college' || educationLevel === 'expert' || educationLevel === 'default')) {
-                speakOutput = 'Please respond with either elementary, high school, college, expert, or default.';
-                educationLevel = handlerInput.responseBuilder.speak(speakOutput).reprompt(speakOutput).getResponse.toLowerCase();
-            }
-
-            if (educationLevel === 'default')
-                return 'Talk in a professional and informative way, keeping your replies brief.';
-
-            return 'Make your replies at the ' + educationLevel + ' level, keeping your replies brief.';    
-        }
-        
         function makeSyncPostRequest() {
             try {
+                
+                // Create an array of message objects to send to OpenAI
+                let messages = [
+                    { "role": "system", "content": initialPrompt }
+                ];
+
+                // Add all previous inputs from catchAllList to the messages array
+                catchAllList.forEach(value => {
+                    messages.push({ "role": "user", "content": value });
+                });
+
+                // Add the current catchAllValue to the messages array
+                messages.push({ "role": "user", "content": catchAllValue });
+                
                 const response = request('POST', 'https://api.openai.com/v1/chat/completions', {
                     headers: {
                         'Content-Type': 'application/json',
                         'Authorization': 'Bearer ' + OPENAI_API_KEY,
-                        // Add any other headers if needed
                     },
                     body: JSON.stringify({  
-                             "model":"gpt-4o-mini",
-                             "messages": [{"role": "system", "content": getEducationLevel()},{"role": "user", "content": catchAllValue}]
-                         })
+                        "model": "gpt-4o-mini",
+                        "messages": messages
+                    })
                 });
-        
-                // Check the response status code
+
                 if (response.statusCode === 200) {
-                    // Process the response body
-                    speakOutput = JSON.parse(response.getBody('utf8'));
-                    speakOutput = speakOutput.choices[0].message.content;
-                  // const responseBody = response.choices[0].message.content;
-
-
+                    catchAllList.push(catchAllValue);
+                    const responseData = JSON.parse(response.getBody('utf8'));
+                    speakOutput = responseData.choices[0].message.content;
                     console.log('Response:', speakOutput);
                 } else {
                     console.error('Failed with status code:', response.statusCode);
@@ -80,12 +69,14 @@ const HelloWorldIntentHandler = {
                 console.error('Error:', error.message);
             }
         }
-        // Call the function to make the synchronous API POST request
+
         makeSyncPostRequest();
+
+        const repromptOutput = 'Would you like to ask anything else?';
 
         return handlerInput.responseBuilder
             .speak(speakOutput)
-            .reprompt('Is there anything else?')
+            .reprompt(repromptOutput)  // Add reprompt for user interaction
             .getResponse();
     }
 };
@@ -97,10 +88,11 @@ const HelpIntentHandler = {
     },
     handle(handlerInput) {
         const speakOutput = 'You can say hello to me! How can I help?';
+        const repromptOutput = 'Please ask for help if needed.';
 
         return handlerInput.responseBuilder
             .speak(speakOutput)
-            .reprompt(speakOutput)
+            .reprompt(repromptOutput)  // Add reprompt for help intent
             .getResponse();
     }
 };
@@ -116,14 +108,11 @@ const CancelAndStopIntentHandler = {
 
         return handlerInput.responseBuilder
             .speak(speakOutput)
+            .withShouldEndSession(true)  // End the session
             .getResponse();
     }
 };
-/* *
- * FallbackIntent triggers when a customer says something that doesn’t map to any intents in your skill
- * It must also be defined in the language model (if the locale supports it)
- * This handler can be safely added but will be ingnored in locales that do not support it yet 
- * */
+
 const FallbackIntentHandler = {
     canHandle(handlerInput) {
         return Alexa.getRequestType(handlerInput.requestEnvelope) === 'IntentRequest'
@@ -131,33 +120,25 @@ const FallbackIntentHandler = {
     },
     handle(handlerInput) {
         const speakOutput = 'Sorry, I don\'t know about that. Please try again.';
+        const repromptOutput = 'Can you repeat that?';
 
         return handlerInput.responseBuilder
             .speak(speakOutput)
-            .reprompt(speakOutput)
+            .reprompt(repromptOutput)  // Add reprompt for fallback intent
             .getResponse();
     }
 };
-/* *
- * SessionEndedRequest notifies that a session was ended. This handler will be triggered when a currently open 
- * session is closed for one of the following reasons: 1) The user says "exit" or "quit". 2) The user does not 
- * respond or says something that does not match an intent defined in your voice model. 3) An error occurs 
- * */
+
 const SessionEndedRequestHandler = {
     canHandle(handlerInput) {
         return Alexa.getRequestType(handlerInput.requestEnvelope) === 'SessionEndedRequest';
     },
     handle(handlerInput) {
         console.log(`~~~~ Session ended: ${JSON.stringify(handlerInput.requestEnvelope)}`);
-        // Any cleanup logic goes here.
-        return handlerInput.responseBuilder.getResponse(); // notice we send an empty response
+        return handlerInput.responseBuilder.getResponse();  // Empty response
     }
 };
-/* *
- * The intent reflector is used for interaction model testing and debugging.
- * It will simply repeat the intent the user said. You can create custom handlers for your intents 
- * by defining them above, then also adding them to the request handler chain below 
- * */
+
 const IntentReflectorHandler = {
     canHandle(handlerInput) {
         return Alexa.getRequestType(handlerInput.requestEnvelope) === 'IntentRequest';
@@ -165,38 +146,31 @@ const IntentReflectorHandler = {
     handle(handlerInput) {
         const intentName = Alexa.getIntentName(handlerInput.requestEnvelope);
         const speakOutput = `You just triggered ${intentName}`;
+        const repromptOutput = 'Please provide further details.';
 
         return handlerInput.responseBuilder
             .speak(speakOutput)
-            .reprompt('Is there anything else?')
+            .reprompt(repromptOutput)  // Add reprompt for reflecting intent
             .getResponse();
     }
 };
-/**
- * Generic error handling to capture any syntax or routing errors. If you receive an error
- * stating the request handler chain is not found, you have not implemented a handler for
- * the intent being invoked or included it in the skill builder below 
- * */
+
 const ErrorHandler = {
     canHandle() {
         return true;
     },
     handle(handlerInput, error) {
         const speakOutput = 'Sorry, I had trouble doing what you asked. Please try again.';
+        const repromptOutput = 'Could you please repeat your request?';
         console.log(`~~~~ Error handled: ${JSON.stringify(error)}`);
 
         return handlerInput.responseBuilder
             .speak(speakOutput)
-            .reprompt(speakOutput)
+            .reprompt(repromptOutput)  // Reprompt for error handling
             .getResponse();
     }
 };
 
-/**
- * This handler acts as the entry point for your skill, routing all request and response
- * payloads to the handlers above. Make sure any new handlers or interceptors you've
- * defined are included below. The order matters - they're processed top to bottom 
- * */
 exports.handler = Alexa.SkillBuilders.custom()
     .addRequestHandlers(
         LaunchRequestHandler,
@@ -206,7 +180,6 @@ exports.handler = Alexa.SkillBuilders.custom()
         FallbackIntentHandler,
         SessionEndedRequestHandler,
         IntentReflectorHandler)
-    .addErrorHandlers(
-        ErrorHandler)
+    .addErrorHandlers(ErrorHandler)
     .withCustomUserAgent('sample/hello-world/v1.2')
     .lambda();
