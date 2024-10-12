@@ -15,7 +15,7 @@ const LaunchRequestHandler = {
         return Alexa.getRequestType(handlerInput.requestEnvelope) === 'LaunchRequest';
     },
     handle(handlerInput) {
-        const speakOutput = 'Welcome to Apollo AI. Which language model would you like to use? Microsoft Copilot, ChatGPT, or Meta Llama?';
+        const speakOutput = 'Welcome to Apollo AI. Say Which language model would you like to use? Microsoft Copilot, ChatGPT, or Meta Llama?';
         
         return handlerInput.responseBuilder.speak(speakOutput).reprompt(speakOutput).getResponse();
     }
@@ -34,7 +34,7 @@ const HelloWorldIntentHandler = {
         console.log('User Input:', catchAllValue);
 
         function getEducationLevel() {
-            var speakOutput = 'How complex do you want your responses to be? Elementary, high school, college, expert, or default?';
+            var speakOutput = 'How complex do you want my responses to be? Elementary, high school, college, expert, or default?';
             var educationLevel = handlerInput.responseBuilder.speak(speakOutput).reprompt(speakOutput).getResponse.toLowerCase();
             while (!(educationLevel === 'elementary' || educationLevel === 'high school' || educationLevel === 'college' || educationLevel === 'expert' || educationLevel === 'default')) {
                 speakOutput = 'Please respond with either elementary, high school, college, expert, or default.';
@@ -44,7 +44,7 @@ const HelloWorldIntentHandler = {
             if (educationLevel === 'default')
                 return '';
 
-            return 'Make your replies at the ' + educationLevel + ' level.';    
+            return 'Make your replies at the ' + educationLevel + ' level.';
         }
 
         function makeSyncPostRequest() {
