@@ -53,59 +53,30 @@ const HelloWorldIntentHandler = {
 
         function makeSyncPostRequest() {
             try {
-                const response = request('POST', 'https://api.openai.com/v1/chat/completions', {
+                const response = await axios.post(endpoint, {
+                    "prompt": catchAllValue,  // Pass the user's input as the prompt
+                    "max_tokens": 150,         // Adjust max tokens as needed
+                    "temperature": 0.7,        // Adjust for creative or factual responses
+                    "top_p": 1,
+                    "n": 1,
+                    "stop": null
+                }, {
                     headers: {
                         'Content-Type': 'application/json',
-                        'Authorization': 'Bearer ' + OPENAI_API_KEY,
-                        // Add any other headers if needed
-                    },
-                    body: JSON.stringify( {
-                             "model":"gpt-3.5-turbo",
-                             "messages": [{"role": "system", "content": "Talk in a professional way."/*getEducationLevel()*/},{"role": "user", "content": catchAllValue}]
-                         })
+                        'api-key': apiKey // Azure API key
+                    }
                 });
-        
-                // Check the response status code
-                if (response.statusCode === 200) {
-                    // Process the response body
-                    speakOutput = JSON.parse(response.getBody('utf8'));
-                    speakOutput = speakOutput.choices[0].message.content;
-                    const responseBody = response.choices[0].message.content;
-
-
-                    console.log('Response:', speakOutput);
-                } else {
-                    console.error('Failed with status code:', response.statusCode);
+    
+                // Extract the response from Azure OpenAI
+                if (response.data && response.data.choices) {
+                    speakOutput = response.data.choices[0].text.trim();
                 }
             } catch (error) {
-                console.error('Error:', error.message);
+                console.error('Error calling Azure OpenAI API:', error);
             }
         }
         // Call the function to make the synchronous API POST request
         makeSyncPostRequest();
-
-        try {
-            const response = await axios.post(endpoint, {
-                "prompt": catchAllValue,  // Pass the user's input as the prompt
-                "max_tokens": 150,         // Adjust max tokens as needed
-                "temperature": 0.7,        // Adjust for creative or factual responses
-                "top_p": 1,
-                "n": 1,
-                "stop": null
-            }, {
-                headers: {
-                    'Content-Type': 'application/json',
-                    'api-key': apiKey // Azure API key
-                }
-            });
-
-            // Extract the response from Azure OpenAI
-            if (response.data && response.data.choices) {
-                speakOutput = response.data.choices[0].text.trim();
-            }
-        } catch (error) {
-            console.error('Error calling Azure OpenAI API:', error);
-        }
 
         return handlerInput.responseBuilder
             .speak(speakOutput)
