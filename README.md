@@ -1,6 +1,7 @@
 # apollo_ai
 Apollo AI Hackathon Alexa Skill.
 
-1. Log into open ai developer portal and get an api key.
-2. Add your api key to the config.js file.
-3. Test your custom alexa skill via the Amazon Alexa developer console
+1. Use the invocation (open apollo ai).
+2. Tell Apollo Ai what large language model you want to use (Microsoft, OpenAI, or Meta).
+3. Give it a prompt saying "I have another question" after each prompt to continue the conversation.
+4. Say "exit" or "Alexa, stop" to end the session.
