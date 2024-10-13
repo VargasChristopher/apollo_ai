@@ -1,4 +1,5 @@
 # apollo_ai
+Christopher Vargas, Christian Vargas, Hamza Mubashir, and Daniyal Shabbir
 Apollo AI Hackathon Alexa Skill.
 
 1. Use the invocation (open apollo ai).
