@@ -1,7 +1,7 @@
 const Alexa = require('ask-sdk-core');
 const request = require('sync-request');
 const { OPENAI_API_KEY } = require('./config');
-var initialPrompt = 'Talk in a professional and informative way, keeping your replies brief and allowing me to change how complex your answers are.';
+var initialPrompt = 'Talk in a professional and informative way, keeping your replies brief (no more than 2 sentences) and allowing me to change how complex your answers are. NO YAPPING!';
 var catchAllList = [];
 
 const LaunchRequestHandler = {
@@ -9,7 +9,7 @@ const LaunchRequestHandler = {
         return Alexa.getRequestType(handlerInput.requestEnvelope) === 'LaunchRequest';
     },
     handle(handlerInput) {
-        const speakOutput = 'Welcome to Apollo A.I.. What language model do you want? Microsoft, OpenAI, or Meta. Say exit at any time to leave.';
+        const speakOutput = 'What language model do you want? Microsoft, OpenAI, or Meta. Say exit at any time to leave.';
         return handlerInput.responseBuilder
             .speak(speakOutput)
             .reprompt(speakOutput)  // Add reprompt for user response
